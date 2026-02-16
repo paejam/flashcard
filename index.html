@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>G1 Trilingual Flashcards</title>
+    
+    <!-- React & DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Kanit:wght@400;600&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0fdf4; /* Light green bg */
+            overscroll-behavior: none; /* Prevent pull-to-refresh on mobile */
+        }
+        .font-thai { font-family: 'Kanit', sans-serif; }
+        .font-cn { font-family: 'Noto Sans SC', sans-serif; }
+        
+        /* Disable text selection for app-like feel */
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="no-select h-screen w-screen overflow-hidden bg-gray-50 flex flex-col">
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { motion, AnimatePresence, useDragControls, useMotionValue, useTransform } = window.Motion;
+
+        // --- Data ---
+        const rawWords = [
+            // Numbers
+            {z:"一", p:"yī", e:"One", t:"หนึ่ง"}, {z:"二", p:"èr", e:"Two", t:"สอง"}, {z:"三", p:"sān", e:"Three", t:"สาม"}, {z:"四", p:"sì", e:"Four", t:"สี่"},
+            {z:"五", p:"wǔ", e:"Five", t:"ห้า"}, {z:"六", p:"liù", e:"Six", t:"หก"}, {z:"七", p:"qī", e:"Seven", t:"เจ็ด"}, {z:"八", p:"bā", e:"Eight", t:"แปด"},
+            {z:"九", p:"jiǔ", e:"Nine", t:"เก้า"}, {z:"十", p:"shí", e:"Ten", t:"สิบ"}, {z:"零", p:"líng", e:"Zero", t:"ศูนย์"}, {z:"百", p:"bǎi", e:"Hundred", t:"ร้อย"},
+            {z:"个", p:"gè", e:"(Unit)", t:"อัน (ลักษณนาม)"}, {z:"多", p:"duō", e:"Many", t:"เยอะ/มาก"}, {z:"少", p:"shǎo", e:"Few", t:"น้อย"},
+            // Family
+            {z:"我", p:"wǒ", e:"I / Me", t:"ฉัน/ผม"}, {z:"你", p:"nǐ", e:"You", t:"คุณ/เธอ"}, {z:"他", p:"tā", e:"He", t:"เขา"}, {z:"她", p:"tā", e:"She", t:"เธอ"},
+            {z:"们", p:"men", e:"(Plural)", t:"พวก..."}, {z:"爸爸", p:"bàba", e:"Dad", t:"พ่อ"}, {z:"妈妈", p:"māma", e:"Mom", t:"แม่"}, {z:"哥哥", p:"gēge", e:"Brother", t:"พี่ชาย"},
+            {z:"姐姐", p:"jiějie", e:"Sister", t:"พี่สาว"}, {z:"弟弟", p:"dìdi", e:"Brother (Jr)", t:"น้องชาย"}, {z:"妹妹", p:"mèimei", e:"Sister (Jr)", t:"น้องสาว"}, {z:"老师", p:"lǎoshī", e:"Teacher", t:"ครู"},
+            {z:"学生", p:"xuésheng", e:"Student", t:"นักเรียน"}, {z:"朋友", p:"péngyou", e:"Friend", t:"เพื่อน"}, {z:"人", p:"rén", e:"Person", t:"คน"},
+            // Body
+            {z:"头", p:"tóu", e:"Head", t:"หัว"}, {z:"头发", p:"tóufa", e:"Hair", t:"ผม"}, {z:"眼睛", p:"yǎnjing", e:"Eyes", t:"ตา"}, {z:"耳朵", p:"ěrduo", e:"Ears", t:"หู"},
+            {z:"鼻子", p:"bízi", e:"Nose", t:"จมูก"}, {z:"嘴巴", p:"zuǐba", e:"Mouth", t:"ปาก"}, {z:"脸", p:"liǎn", e:"Face", t:"หน้า"}, {z:"手", p:"shǒu", e:"Hand", t:"มือ"},
+            {z:"脚", p:"jiǎo", e:"Foot", t:"เท้า"}, {z:"腿", p:"tuǐ", e:"Leg", t:"ขา"}, {z:"身体", p:"shēntǐ", e:"Body", t:"ร่างกาย"}, {z:"个子", p:"gèzi", e:"Stature", t:"รูปร่าง/ส่วนสูง"},
+            // School
+            {z:"学校", p:"xuéxiào", e:"School", t:"โรงเรียน"}, {z:"教室", p:"jiàoshì", e:"Classroom", t:"ห้องเรียน"}, {z:"书", p:"shū", e:"Book", t:"หนังสือ"}, {z:"书包", p:"shūbāo", e:"Bag", t:"กระเป๋าหนังสือ"},
+            {z:"本子", p:"běnzi", e:"Notebook", t:"สมุด"}, {z:"铅笔", p:"qiānbǐ", e:"Pencil", t:"ดินสอ"}, {z:"橡皮", p:"xiàngpí", e:"Eraser", t:"ยางลบ"}, {z:"桌子", p:"zhuōzi", e:"Table", t:"โต๊ะ"},
+            {z:"椅子", p:"yǐzi", e:"Chair", t:"เก้าอี้"}, {z:"汉语", p:"Hànyǔ", e:"Chinese", t:"ภาษาจีน"}, {z:"字", p:"zì", e:"Char", t:"ตัวอักษร"}, {z:"画儿", p:"huàr", e:"Picture", t:"รูปวาด"},
+            {z:"名字", p:"míngzi", e:"Name", t:"ชื่อ"}, {z:"谁", p:"shéi", e:"Who", t:"ใคร"}, {z:"什么", p:"shénme", e:"What", t:"อะไร"}, {z:"这", p:"zhè", e:"This", t:"นี่"},
+            {z:"那", p:"nà", e:"That", t:"นั่น"}, {z:"哪", p:"nǎ", e:"Which", t:"ไหน"},
+             // Animals/Nature
+            {z:"猫", p:"māo", e:"Cat", t:"แมว"}, {z:"狗", p:"gǒu", e:"Dog", t:"สุนัข/หมา"}, {z:"鸟", p:"niǎo", e:"Bird", t:"นก"}, {z:"鱼", p:"yú", e:"Fish", t:"ปลา"},
+            {z:"大象", p:"dàxiàng", e:"Elephant", t:"ช้าง"}, {z:"马", p:"mǎ", e:"Horse", t:"ม้า"}, {z:"牛", p:"niú", e:"Cow", t:"วัว"}, {z:"羊", p:"yáng", e:"Sheep", t:"แกะ/แพะ"},
+            {z:"天", p:"tiān", e:"Sky/Day", t:"ท้องฟ้า/วัน"}, {z:"地", p:"dì", e:"Ground", t:"พื้นดิน"}, {z:"太阳", p:"tàiyáng", e:"Sun", t:"พระอาทิตย์"}, {z:"月亮", p:"yuèliang", e:"Moon", t:"พระจันทร์"},
+            {z:"水", p:"shuǐ", e:"Water", t:"น้ำ"}, {z:"山", p:"shān", e:"Mountain", t:"ภูเขา"}, {z:"云", p:"yún", e:"Cloud", t:"เมฆ"},
+            // Food
+            {z:"吃", p:"chī", e:"Eat", t:"กิน"}, {z:"喝", p:"hē", e:"Drink", t:"ดื่ม"}, {z:"米饭", p:"mǐfàn", e:"Rice", t:"ข้าวสวย"}, {z:"面条", p:"miàntiáo", e:"Noodles", t:"ก๋วยเตี๋ยว"},
+            {z:"包子", p:"bāozi", e:"Bun", t:"ซาลาเปา"}, {z:"面包", p:"miànbāo", e:"Bread", t:"ขนมปัง"}, {z:"鸡蛋", p:"jīdàn", e:"Egg", t:"ไข่ไก่"}, {z:"牛奶", p:"niúnǎi", e:"Milk", t:"นมวัว"},
+            {z:"水饺", p:"shuǐjiǎo", e:"Dumpling", t:"เกี๊ยวต้ม"}, {z:"水果", p:"shuǐguǒ", e:"Fruit", t:"ผลไม้"}, {z:"苹果", p:"píngguǒ", e:"Apple", t:"แอปเปิ้ล"}, {z:"香蕉", p:"xiāngjiāo", e:"Banana", t:"กล้วย"},
+            {z:"西瓜", p:"xīguā", e:"Watermelon", t:"แตงโม"}, {z:"菜", p:"cài", e:"Vegetable", t:"ผัก"}, {z:"好吃", p:"hǎochī", e:"Yummy", t:"อร่อย"},
+            // Verbs
+            {z:"去", p:"qù", e:"Go", t:"ไป"}, {z:"来", p:"lái", e:"Come", t:"มา"}, {z:"坐", p:"zuò", e:"Sit", t:"นั่ง"}, {z:"站", p:"zhàn", e:"Stand", t:"ยืน"},
+            {z:"走", p:"zǒu", e:"Walk", t:"เดิน"}, {z:"跑", p:"pǎo", e:"Run", t:"วิ่ง"}, {z:"看", p:"kàn", e:"Watch/Read", t:"ดู/อ่าน"}, {z:"听", p:"tīng", e:"Listen", t:"ฟัง"},
+            {z:"说", p:"shuō", e:"Speak", t:"พูด"}, {z:"读", p:"dú", e:"Read aloud", t:"อ่านออกเสียง"}, {z:"写", p:"xiě", e:"Write", t:"เขียน"}, {z:"叫", p:"jiào", e:"Call/Name", t:"เรียก/ชื่อว่า"},
+            {z:"爱", p:"ài", e:"Love", t:"รัก"}, {z:"喜欢", p:"xǐhuan", e:"Like", t:"ชอบ"}, {z:"有", p:"yǒu", e:"Have", t:"มี"}, {z:"没有", p:"méiyǒu", e:"Don't have", t:"ไม่มี"},
+            {z:"要", p:"yào", e:"Want", t:"เอา/ต้องการ"}, {z:"会", p:"huì", e:"Can/Will", t:"เป็น/สามารถ/จะ"}, {z:"想", p:"xiǎng", e:"Think/Want", t:"คิด/อยาก"}, {z:"是", p:"shì", e:"Is/Am/Are", t:"เป็น/คือ/ใช่"},
+            // Colors/Adj
+            {z:"颜色", p:"yánsè", e:"Color", t:"สี"}, {z:"红色", p:"hóngsè", e:"Red", t:"สีแดง"}, {z:"黄色", p:"huángsè", e:"Yellow", t:"สีเหลือง"}, {z:"蓝色", p:"lánsè", e:"Blue", t:"สีฟ้า/น้ำเงิน"},
+            {z:"绿色", p:"lǜsè", e:"Green", t:"สีเขียว"}, {z:"黑色", p:"hēisè", e:"Black", t:"สีดำ"}, {z:"白色", p:"báisè", e:"White", t:"สีขาว"}, {z:"大", p:"dà", e:"Big", t:"ใหญ่"},
+            {z:"小", p:"xiǎo", e:"Small", t:"เล็ก"}, {z:"长", p:"cháng", e:"Long", t:"ยาว"}, {z:"短", p:"duǎn", e:"Short", t:"สั้น"}, {z:"高", p:"gāo", e:"High/Tall", t:"สูง"},
+            {z:"好", p:"hǎo", e:"Good", t:"ดี"}, {z:"漂亮", p:"piàoliang", e:"Pretty", t:"สวย"}, {z:"高兴", p:"gāoxìng", e:"Happy", t:"ดีใจ/มีความสุข"},
+            // Time/Place
+            {z:"现在", p:"xiànzài", e:"Now", t:"ตอนนี้"}, {z:"今天", p:"jīntiān", e:"Today", t:"วันนี้"}, {z:"明天", p:"míngtiān", e:"Tomorrow", t:"พรุ่งนี้"}, {z:"昨天", p:"zuótiān", e:"Yesterday", t:"เมื่อวาน"},
+            {z:"年", p:"nián", e:"Year", t:"ปี"}, {z:"月", p:"yuè", e:"Month", t:"เดือน"}, {z:"日", p:"rì", e:"Day/Date", t:"วัน"}, {z:"星期", p:"xīngqī", e:"Week", t:"สัปดาห์"},
+            {z:"点", p:"diǎn", e:"O'clock", t:"โมง/นาฬิกา"}, {z:"家", p:"jiā", e:"Home", t:"บ้าน/ครอบครัว"}, {z:"北京", p:"Běijīng", e:"Beijing", t:"ปักกิ่ง"}, {z:"中国", p:"Zhōngguó", e:"China", t:"ประเทศจีน"},
+            {z:"上", p:"shàng", e:"Up/Above", t:"บน/ขึ้น"}, {z:"下", p:"xià", e:"Down/Below", t:"ล่าง/ลง/ใต้"}, {z:"里", p:"lǐ", e:"Inside", t:"ใน"},
+            // Greetings
+            {z:"你好", p:"nǐhǎo", e:"Hello", t:"สวัสดี"}, {z:"再见", p:"zàijiàn", e:"Goodbye", t:"ลาก่อน"}, {z:"谢谢", p:"xièxie", e:"Thank you", t:"ขอบคุณ"}, {z:"不客气", p:"búkèqi", e:"Welcome", t:"ไม่เป็นไร (ตอบรับคำขอบคุณ)"},
+            {z:"对不起", p:"duìbuqǐ", e:"Sorry", t:"ขอโทษ"}, {z:"没关系", p:"méiguānxi", e:"No problem", t:"ไม่เป็นไร (ตอบรับคำขอโทษ)"}, {z:"很", p:"hěn", e:"Very", t:"มาก"}, {z:"太...了", p:"tài...le", e:"Too...", t:"...เกินไป"},
+            {z:"和", p:"hé", e:"And", t:"และ/กับ"}, {z:"吗", p:"ma", e:"(Question marker)", t:"ไหม (คำถาม)"}
+        ];
+
+        // --- Colors ---
+        const LANGUAGES = [
+            { id: 'en', label: 'English', color: 'bg-blue-500', text: 'text-blue-600', light: 'bg-blue-100' },
+            { id: 'th', label: 'Thai', color: 'bg-pink-500', text: 'text-pink-600', light: 'bg-pink-100' },
+            { id: 'cn', label: 'Chinese', color: 'bg-red-500', text: 'text-red-600', light: 'bg-red-100' },
+        ];
+
+        function App() {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [mainLang, setMainLang] = useState('cn'); // Default to Chinese as user provided it first in array
+            const [direction, setDirection] = useState(0); // -1: left, 1: right
+
+            const nextCard = () => {
+                setDirection(1);
+                setCurrentIndex((prev) => (prev + 1) % rawWords.length);
+            };
+
+            const prevCard = () => {
+                setDirection(-1);
+                setCurrentIndex((prev) => (prev - 1 + rawWords.length) % rawWords.length);
+            };
+            
+            // Swipe handlers for the main card area
+            const onSwipe = (event, info) => {
+                if (info.offset.x < -50) {
+                    nextCard();
+                } else if (info.offset.x > 50) {
+                    prevCard();
+                }
+            };
+            
+            const currentItem = rawWords[currentIndex];
+
+            return (
+                <div className="flex flex-col h-full relative overflow-hidden bg-gray-50">
+                    {/* Top Bar - Language Selector */}
+                    <div className="pt-8 pb-4 px-4 bg-white shadow-sm z-10 flex justify-center space-x-2">
+                        {LANGUAGES.map((lang) => (
+                            <button
+                                key={lang.id}
+                                onClick={() => setMainLang(lang.id)}
+                                className={`px-4 py-2 rounded-full font-bold transition-all ${
+                                    mainLang === lang.id 
+                                    ? `${lang.color} text-white shadow-md scale-105` 
+                                    : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                }`}
+                            >
+                                {lang.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Progress Indicator */}
+                    <div className="text-center text-gray-400 text-sm mt-2 font-mono">
+                        {currentIndex + 1} / {rawWords.length}
+                    </div>
+
+                    {/* Main Card Area */}
+                    <div className="flex-1 flex items-center justify-center p-6 relative">
+                        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                            <motion.div
+                                key={currentIndex}
+                                custom={direction}
+                                variants={{
+                                    enter: (direction) => ({
+                                        x: direction > 0 ? 300 : -300,
+                                        opacity: 0,
+                                        scale: 0.8
+                                    }),
+                                    center: {
+                                        zIndex: 1,
+                                        x: 0,
+                                        opacity: 1,
+                                        scale: 1,
+                                        rotate: 0 
+                                    },
+                                    exit: (direction) => ({
+                                        zIndex: 0,
+                                        x: direction < 0 ? 300 : -300,
+                                        opacity: 0,
+                                        scale: 0.8,
+                                        rotate: direction < 0 ? 10 : -10
+                                    })
+                                }}
+                                initial="enter"
+                                animate="center"
+                                exit="exit"
+                                transition={{
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.2 }
+                                }}
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 0 }}
+                                dragElastic={0.5}
+                                onDragEnd={onSwipe}
+                                className="absolute w-full max-w-sm aspect-[4/5] bg-white rounded-3xl shadow-xl flex flex-col items-center justify-center p-8 border-4 border-white user-select-none touch-pan-y"
+                            >
+                                <div className="text-center">
+                                    <span className="text-sm text-gray-400 uppercase tracking-widest mb-4 block">
+                                        {LANGUAGES.find(l => l.id === mainLang).label}
+                                    </span>
+                                    <h1 className={`text-6xl md:text-8xl font-bold text-gray-800 break-words leading-tight ${
+                                        mainLang === 'th' ? 'font-thai' : mainLang === 'cn' ? 'font-cn' : ''
+                                    }`}>
+                                        {mainLang === 'en' ? currentItem.e : 
+                                         mainLang === 'th' ? currentItem.t : 
+                                         currentItem.z}
+                                    </h1>
+                                </div>
+                                
+                                {/* Hint for interaction */}
+                                <div className="absolute bottom-6 flex justify-between w-full px-8 text-gray-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Bottom Peek Panel */}
+                    <BottomPanel item={currentItem} currentLang={mainLang} />
+                    
+                </div>
+            );
+        }
+
+        function BottomPanel({ item, currentLang }) {
+            const [isOpen, setIsOpen] = useState(false);
+            const controls = useDragControls();
+            
+            // Reset state when item changes
+            useEffect(() => {
+                setIsOpen(false);
+            }, [item]);
+
+            return (
+                <div className="fixed inset-x-0 bottom-0 z-30 pointer-events-none h-full flex flex-col justify-end">
+                    {/* Dark overlay when open */}
+                    <AnimatePresence>
+                        {isOpen && (
+                            <motion.div 
+                                initial={{ opacity: 0 }} 
+                                animate={{ opacity: 0.5 }} 
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsOpen(false)}
+                                className="absolute inset-0 bg-black pointer-events-auto"
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* The Panel - This needs to be pointer-events-auto */}
+                    <motion.div
+                        drag="y"
+                        dragConstraints={{ top: 0, bottom: 0 }}
+                        dragElastic={0.2}
+                        onDragEnd={(e, { offset, velocity }) => {
+                            if (offset.y < -50 || velocity.y < -500) {
+                                setIsOpen(true);
+                            } else if (offset.y > 50 || velocity.y > 500) {
+                                setIsOpen(false);
+                            }
+                        }}
+                        animate={{ 
+                            y: isOpen ? 0 : 'calc(100% - 100px)', // Show only peek area
+                            height: isOpen ? '70%' : '140px'
+                        }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="w-full bg-white rounded-t-3xl shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.1)] flex flex-col items-center pointer-events-auto"
+                    >
+                        {/* Drag Handle / Peek Area */}
+                        <div 
+                            className="w-full flex flex-col items-center pt-4 pb-2 cursor-grab active:cursor-grabbing hover:bg-gray-50 rounded-t-3xl transition-colors"
+                            onClick={() => setIsOpen(!isOpen)} 
+                        >
+                            <div className="w-16 h-1.5 bg-gray-200 rounded-full mb-3" />
+                            <p className="text-gray-400 text-sm font-medium animate-pulse">
+                                {isOpen ? "Swipe down to close" : "Hold & Swipe Up to Reveal"}
+                            </p>
+                        </div>
+
+                        {/* Content (Hidden initially) */}
+                        <div className="w-full px-8 pt-4 pb-12 flex flex-col items-center justify-start space-y-6 overflow-y-auto">
+                            
+                            {/* Pronunciation (Pinyin) - Always show pinyin */}
+                            <div className="text-center">
+                                <span className="text-xs text-gray-400 uppercase tracking-widest">Pronunciation</span>
+                                <p className="text-3xl text-gray-600 font-serif italic mt-1">{item.p}</p>
+                            </div>
+
+                            <div className="w-full h-px bg-gray-100"></div>
+
+                            {/* Translations Component */}
+                            <div className="flex flex-col space-y-4 w-full">
+                                {LANGUAGES.filter(l => l.id !== currentLang).map(lang => (
+                                    <div key={lang.id} className="flex flex-col items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                        <span className={`text-xs font-bold uppercase mb-1 ${lang.text}`}>
+                                            {lang.label}
+                                        </span>
+                                        <p className={`text-2xl font-bold text-gray-800 ${lang.id === 'cn' ? 'font-cn' : lang.id === 'th' ? 'font-thai' : ''}`}>
+                                            {lang.id === 'en' ? item.e : lang.id === 'th' ? item.t : item.z}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
