@@ -34,7 +34,7 @@
         }
 
         .font-thai {
-            font-family: 'Kanit', sans-serif;
+            font-family: 'TH Sarabun New', sans-serif;
         }
 
         .font-cn {
@@ -61,57 +61,58 @@
         const { motion, AnimatePresence, useDragControls, useMotionValue, useTransform } = window.Motion;
 
         // --- Data ---
+        // s: Simplified, t: Traditional, p: Pinyin, e: English, th: Thai
         const rawWords = [
             // Numbers
-            { z: "一", p: "yī", e: "One", t: "หนึ่ง" }, { z: "二", p: "èr", e: "Two", t: "สอง" }, { z: "三", p: "sān", e: "Three", t: "สาม" }, { z: "四", p: "sì", e: "Four", t: "สี่" },
-            { z: "五", p: "wǔ", e: "Five", t: "ห้า" }, { z: "六", p: "liù", e: "Six", t: "หก" }, { z: "七", p: "qī", e: "Seven", t: "เจ็ด" }, { z: "八", p: "bā", e: "Eight", t: "แปด" },
-            { z: "九", p: "jiǔ", e: "Nine", t: "เก้า" }, { z: "十", p: "shí", e: "Ten", t: "สิบ" }, { z: "零", p: "líng", e: "Zero", t: "ศูนย์" }, { z: "百", p: "bǎi", e: "Hundred", t: "ร้อย" },
-            { z: "个", p: "gè", e: "(Unit)", t: "อัน (ลักษณนาม)" }, { z: "多", p: "duō", e: "Many", t: "เยอะ/มาก" }, { z: "少", p: "shǎo", e: "Few", t: "น้อย" },
+            { s: "一", t: "", p: "yī", e: "One", th: "หนึ่ง" }, { s: "二", t: "", p: "èr", e: "Two", th: "สอง" }, { s: "三", t: "", p: "sān", e: "Three", th: "สาม" }, { s: "四", t: "", p: "sì", e: "Four", th: "สี่" },
+            { s: "五", t: "", p: "wǔ", e: "Five", th: "ห้า" }, { s: "六", t: "", p: "liù", e: "Six", th: "หก" }, { s: "七", t: "", p: "qī", e: "Seven", th: "เจ็ด" }, { s: "八", t: "", p: "bā", e: "Eight", th: "แปด" },
+            { s: "九", t: "", p: "jiǔ", e: "Nine", th: "เก้า" }, { s: "十", t: "", p: "shí", e: "Ten", th: "สิบ" }, { s: "零", t: "", p: "líng", e: "Zero", th: "ศูนย์" }, { s: "百", t: "", p: "bǎi", e: "Hundred", th: "ร้อย" },
+            { s: "个", t: "個", p: "gè", e: "(Unit)", th: "อัน (ลักษณนาม)" }, { s: "多", t: "", p: "duō", e: "Many", th: "เยอะ/มาก" }, { s: "少", t: "", p: "shǎo", e: "Few", th: "น้อย" },
             // Family
-            { z: "我", p: "wǒ", e: "I / Me", t: "ฉัน/ผม" }, { z: "你", p: "nǐ", e: "You", t: "คุณ/เธอ" }, { z: "他", p: "tā", e: "He", t: "เขา" }, { z: "她", p: "tā", e: "She", t: "เธอ" },
-            { z: "们", p: "men", e: "(Plural)", t: "พวก..." }, { z: "爸爸", p: "bàba", e: "Dad", t: "พ่อ" }, { z: "妈妈", p: "māma", e: "Mom", t: "แม่" }, { z: "哥哥", p: "gēge", e: "Brother", t: "พี่ชาย" },
-            { z: "姐姐", p: "jiějie", e: "Sister", t: "พี่สาว" }, { z: "弟弟", p: "dìdi", e: "Brother (Jr)", t: "น้องชาย" }, { z: "妹妹", p: "mèimei", e: "Sister (Jr)", t: "น้องสาว" }, { z: "老师", p: "lǎoshī", e: "Teacher", t: "ครู" },
-            { z: "学生", p: "xuésheng", e: "Student", t: "นักเรียน" }, { z: "朋友", p: "péngyou", e: "Friend", t: "เพื่อน" }, { z: "人", p: "rén", e: "Person", t: "คน" },
+            { s: "我", t: "", p: "wǒ", e: "I / Me", th: "ฉัน/ผม" }, { s: "你", t: "", p: "nǐ", e: "You", th: "คุณ/เธอ" }, { s: "他", t: "", p: "tā", e: "He", th: "เขา" }, { s: "她", t: "", p: "tā", e: "She", th: "เธอ" },
+            { s: "们", t: "們", p: "men", e: "(Plural)", th: "พวก..." }, { s: "爸爸", t: "", p: "bàba", e: "Dad", th: "พ่อ" }, { s: "妈妈", t: "媽媽", p: "māma", e: "Mom", th: "แม่" }, { s: "哥哥", t: "", p: "gēge", e: "Brother", th: "พี่ชาย" },
+            { s: "姐姐", t: "", p: "jiějie", e: "Sister", th: "พี่สาว" }, { s: "弟弟", t: "", p: "dìdi", e: "Brother (Jr)", th: "น้องชาย" }, { s: "妹妹", t: "", p: "mèimei", e: "Sister (Jr)", th: "น้องสาว" }, { s: "老师", t: "老師", p: "lǎoshī", e: "Teacher", th: "ครู" },
+            { s: "学生", t: "學生", p: "xuésheng", e: "Student", th: "นักเรียน" }, { s: "朋友", t: "", p: "péngyou", e: "Friend", th: "เพื่อน" }, { s: "人", t: "", p: "rén", e: "Person", th: "คน" },
             // Body
-            { z: "头", p: "tóu", e: "Head", t: "หัว" }, { z: "头发", p: "tóufa", e: "Hair", t: "ผม" }, { z: "眼睛", p: "yǎnjing", e: "Eyes", t: "ตา" }, { z: "耳朵", p: "ěrduo", e: "Ears", t: "หู" },
-            { z: "鼻子", p: "bízi", e: "Nose", t: "จมูก" }, { z: "嘴巴", p: "zuǐba", e: "Mouth", t: "ปาก" }, { z: "脸", p: "liǎn", e: "Face", t: "หน้า" }, { z: "手", p: "shǒu", e: "Hand", t: "มือ" },
-            { z: "脚", p: "jiǎo", e: "Foot", t: "เท้า" }, { z: "腿", p: "tuǐ", e: "Leg", t: "ขา" }, { z: "身体", p: "shēntǐ", e: "Body", t: "ร่างกาย" }, { z: "个子", p: "gèzi", e: "Stature", t: "รูปร่าง/ส่วนสูง" },
+            { s: "头", t: "頭", p: "tóu", e: "Head", th: "หัว" }, { s: "头发", t: "頭髮", p: "tóufa", e: "Hair", th: "ผม" }, { s: "眼睛", t: "", p: "yǎnjing", e: "Eyes", th: "ตา" }, { s: "耳朵", t: "", p: "ěrduo", e: "Ears", th: "หู" },
+            { s: "鼻子", t: "", p: "bízi", e: "Nose", th: "จมูก" }, { s: "嘴巴", t: "", p: "zuǐba", e: "Mouth", th: "ปาก" }, { s: "脸", t: "臉", p: "liǎn", e: "Face", th: "หน้า" }, { s: "手", t: "", p: "shǒu", e: "Hand", th: "มือ" },
+            { s: "脚", t: "腳", p: "jiǎo", e: "Foot", th: "เท้า" }, { s: "腿", t: "", p: "tuǐ", e: "Leg", th: "ขา" }, { s: "身体", t: "身體", p: "shēntǐ", e: "Body", th: "ร่างกาย" }, { s: "个子", t: "個子", p: "gèzi", e: "Stature", th: "รูปร่าง/ส่วนสูง" },
             // School
-            { z: "学校", p: "xuéxiào", e: "School", t: "โรงเรียน" }, { z: "教室", p: "jiàoshì", e: "Classroom", t: "ห้องเรียน" }, { z: "书", p: "shū", e: "Book", t: "หนังสือ" }, { z: "书包", p: "shūbāo", e: "Bag", t: "กระเป๋าหนังสือ" },
-            { z: "本子", p: "běnzi", e: "Notebook", t: "สมุด" }, { z: "铅笔", p: "qiānbǐ", e: "Pencil", t: "ดินสอ" }, { z: "橡皮", p: "xiàngpí", e: "Eraser", t: "ยางลบ" }, { z: "桌子", p: "zhuōzi", e: "Table", t: "โต๊ะ" },
-            { z: "椅子", p: "yǐzi", e: "Chair", t: "เก้าอี้" }, { z: "汉语", p: "Hànyǔ", e: "Chinese", t: "ภาษาจีน" }, { z: "字", p: "zì", e: "Char", t: "ตัวอักษร" }, { z: "画儿", p: "huàr", e: "Picture", t: "รูปวาด" },
-            { z: "名字", p: "míngzi", e: "Name", t: "ชื่อ" }, { z: "谁", p: "shéi", e: "Who", t: "ใคร" }, { z: "什么", p: "shénme", e: "What", t: "อะไร" }, { z: "这", p: "zhè", e: "This", t: "นี่" },
-            { z: "那", p: "nà", e: "That", t: "นั่น" }, { z: "哪", p: "nǎ", e: "Which", t: "ไหน" },
+            { s: "学校", t: "學校", p: "xuéxiào", e: "School", th: "โรงเรียน" }, { s: "教室", t: "", p: "jiàoshì", e: "Classroom", th: "ห้องเรียน" }, { s: "书", t: "書", p: "shū", e: "Book", th: "หนังสือ" }, { s: "书包", t: "書包", p: "shūbāo", e: "Bag", th: "กระเป๋าหนังสือ" },
+            { s: "本子", t: "", p: "běnzi", e: "Notebook", th: "สมุด" }, { s: "铅笔", t: "鉛筆", p: "qiānbǐ", e: "Pencil", th: "ดินสอ" }, { s: "橡皮", t: "", p: "xiàngpí", e: "Eraser", th: "ยางลบ" }, { s: "桌子", t: "", p: "zhuōzi", e: "Table", th: "โต๊ะ" },
+            { s: "椅子", t: "", p: "yǐzi", e: "Chair", th: "เก้าอี้" }, { s: "汉语", t: "漢語", p: "Hànyǔ", e: "Chinese", th: "ภาษาจีน" }, { s: "字", t: "", p: "zì", e: "Char", th: "ตัวอักษร" }, { s: "画儿", t: "畫兒", p: "huàr", e: "Picture", th: "รูปวาด" },
+            { s: "名字", t: "", p: "míngzi", e: "Name", th: "ชื่อ" }, { s: "谁", t: "誰", p: "shéi", e: "Who", th: "ใคร" }, { s: "什么", t: "什麼", p: "shénme", e: "What", th: "อะไร" }, { s: "这", t: "這", p: "zhè", e: "This", th: "นี่" },
+            { s: "那", t: "", p: "nà", e: "That", th: "นั่น" }, { s: "哪", t: "", p: "nǎ", e: "Which", th: "ไหน" },
             // Animals/Nature
-            { z: "猫", p: "māo", e: "Cat", t: "แมว" }, { z: "狗", p: "gǒu", e: "Dog", t: "สุนัข/หมา" }, { z: "鸟", p: "niǎo", e: "Bird", t: "นก" }, { z: "鱼", p: "yú", e: "Fish", t: "ปลา" },
-            { z: "大象", p: "dàxiàng", e: "Elephant", t: "ช้าง" }, { z: "马", p: "mǎ", e: "Horse", t: "ม้า" }, { z: "牛", p: "niú", e: "Cow", t: "วัว" }, { z: "羊", p: "yáng", e: "Sheep", t: "แกะ/แพะ" },
-            { z: "天", p: "tiān", e: "Sky/Day", t: "ท้องฟ้า/วัน" }, { z: "地", p: "dì", e: "Ground", t: "พื้นดิน" }, { z: "太阳", p: "tàiyáng", e: "Sun", t: "พระอาทิตย์" }, { z: "月亮", p: "yuèliang", e: "Moon", t: "พระจันทร์" },
-            { z: "水", p: "shuǐ", e: "Water", t: "น้ำ" }, { z: "山", p: "shān", e: "Mountain", t: "ภูเขา" }, { z: "云", p: "yún", e: "Cloud", t: "เมฆ" },
+            { s: "猫", t: "貓", p: "māo", e: "Cat", th: "แมว" }, { s: "狗", t: "", p: "gǒu", e: "Dog", th: "สุนัข/หมา" }, { s: "鸟", t: "鳥", p: "niǎo", e: "Bird", th: "นก" }, { s: "鱼", t: "魚", p: "yú", e: "Fish", th: "ปลา" },
+            { s: "大象", t: "", p: "dàxiàng", e: "Elephant", th: "ช้าง" }, { s: "马", t: "馬", p: "mǎ", e: "Horse", th: "ม้า" }, { s: "牛", t: "", p: "niú", e: "Cow", th: "วัว" }, { s: "羊", t: "", p: "yáng", e: "Sheep", th: "แกะ/แพะ" },
+            { s: "天", t: "", p: "tiān", e: "Sky/Day", th: "ท้องฟ้า/วัน" }, { s: "地", t: "", p: "dì", e: "Ground", th: "พื้นดิน" }, { s: "太阳", t: "太陽", p: "tàiyáng", e: "Sun", th: "พระอาทิตย์" }, { s: "月亮", t: "", p: "yuèliang", e: "Moon", th: "พระจันทร์" },
+            { s: "水", t: "", p: "shuǐ", e: "Water", th: "น้ำ" }, { s: "山", t: "", p: "shān", e: "Mountain", th: "ภูเขา" }, { s: "云", t: "雲", p: "yún", e: "Cloud", th: "เมฆ" },
             // Food
-            { z: "吃", p: "chī", e: "Eat", t: "กิน" }, { z: "喝", p: "hē", e: "Drink", t: "ดื่ม" }, { z: "米饭", p: "mǐfàn", e: "Rice", t: "ข้าวสวย" }, { z: "面条", p: "miàntiáo", e: "Noodles", t: "ก๋วยเตี๋ยว" },
-            { z: "包子", p: "bāozi", e: "Bun", t: "ซาลาเปา" }, { z: "面包", p: "miànbāo", e: "Bread", t: "ขนมปัง" }, { z: "鸡蛋", p: "jīdàn", e: "Egg", t: "ไข่ไก่" }, { z: "牛奶", p: "niúnǎi", e: "Milk", t: "นมวัว" },
-            { z: "水饺", p: "shuǐjiǎo", e: "Dumpling", t: "เกี๊ยวต้ม" }, { z: "水果", p: "shuǐguǒ", e: "Fruit", t: "ผลไม้" }, { z: "苹果", p: "píngguǒ", e: "Apple", t: "แอปเปิ้ล" }, { z: "香蕉", p: "xiāngjiāo", e: "Banana", t: "กล้วย" },
-            { z: "西瓜", p: "xīguā", e: "Watermelon", t: "แตงโม" }, { z: "菜", p: "cài", e: "Vegetable", t: "ผัก" }, { z: "好吃", p: "hǎochī", e: "Yummy", t: "อร่อย" },
+            { s: "吃", t: "", p: "chī", e: "Eat", th: "กิน" }, { s: "喝", t: "", p: "hē", e: "Drink", th: "ดื่ม" }, { s: "米饭", t: "米飯", p: "mǐfàn", e: "Rice", th: "ข้าวสวย" }, { s: "面条", t: "麵條", p: "miàntiáo", e: "Noodles", th: "ก๋วยเตี๋ยว" },
+            { s: "包子", t: "", p: "bāozi", e: "Bun", th: "ซาลาเปา" }, { s: "面包", t: "麵包", p: "miànbāo", e: "Bread", th: "ขนมปัง" }, { s: "鸡蛋", t: "雞蛋", p: "jīdàn", e: "Egg", th: "ไข่ไก่" }, { s: "牛奶", t: "", p: "niúnǎi", e: "Milk", th: "นมวัว" },
+            { s: "水饺", t: "水餃", p: "shuǐjiǎo", e: "Dumpling", th: "เกี๊ยวต้ม" }, { s: "水果", t: "", p: "shuǐguǒ", e: "Fruit", th: "ผลไม้" }, { s: "苹果", t: "蘋果", p: "píngguǒ", e: "Apple", th: "แอปเปิ้ล" }, { s: "香蕉", t: "", p: "xiāngjiāo", e: "Banana", th: "กล้วย" },
+            { s: "西瓜", t: "", p: "xīguā", e: "Watermelon", th: "แตงโม" }, { s: "菜", t: "", p: "cài", e: "Vegetable", th: "ผัก" }, { s: "好吃", t: "", p: "hǎochī", e: "Yummy", th: "อร่อย" },
             // Verbs
-            { z: "去", p: "qù", e: "Go", t: "ไป" }, { z: "来", p: "lái", e: "Come", t: "มา" }, { z: "坐", p: "zuò", e: "Sit", t: "นั่ง" }, { z: "站", p: "zhàn", e: "Stand", t: "ยืน" },
-            { z: "走", p: "zǒu", e: "Walk", t: "เดิน" }, { z: "跑", p: "pǎo", e: "Run", t: "วิ่ง" }, { z: "看", p: "kàn", e: "Watch/Read", t: "ดู/อ่าน" }, { z: "听", p: "tīng", e: "Listen", t: "ฟัง" },
-            { z: "说", p: "shuō", e: "Speak", t: "พูด" }, { z: "读", p: "dú", e: "Read aloud", t: "อ่านออกเสียง" }, { z: "写", p: "xiě", e: "Write", t: "เขียน" }, { z: "叫", p: "jiào", e: "Call/Name", t: "เรียก/ชื่อว่า" },
-            { z: "爱", p: "ài", e: "Love", t: "รัก" }, { z: "喜欢", p: "xǐhuan", e: "Like", t: "ชอบ" }, { z: "有", p: "yǒu", e: "Have", t: "มี" }, { z: "没有", p: "méiyǒu", e: "Don't have", t: "ไม่มี" },
-            { z: "要", p: "yào", e: "Want", t: "เอา/ต้องการ" }, { z: "会", p: "huì", e: "Can/Will", t: "เป็น/สามารถ/จะ" }, { z: "想", p: "xiǎng", e: "Think/Want", t: "คิด/อยาก" }, { z: "是", p: "shì", e: "Is/Am/Are", t: "เป็น/คือ/ใช่" },
+            { s: "去", t: "", p: "qù", e: "Go", th: "ไป" }, { s: "来", t: "來", p: "lái", e: "Come", th: "มา" }, { s: "坐", t: "", p: "zuò", e: "Sit", th: "นั่ง" }, { s: "站", t: "", p: "zhàn", e: "Stand", th: "ยืน" },
+            { s: "走", t: "", p: "zǒu", e: "Walk", th: "เดิน" }, { s: "跑", t: "", p: "pǎo", e: "Run", th: "วิ่ง" }, { s: "看", t: "", p: "kàn", e: "Watch/Read", th: "ดู/อ่าน" }, { s: "听", t: "聽", p: "tīng", e: "Listen", th: "ฟัง" },
+            { s: "说", t: "說", p: "shuō", e: "Speak", th: "พูด" }, { s: "读", t: "讀", p: "dú", e: "Read aloud", th: "อ่านออกเสียง" }, { s: "写", t: "寫", p: "xiě", e: "Write", th: "เขียน" }, { s: "叫", t: "", p: "jiào", e: "Call/Name", th: "เรียก/ชื่อว่า" },
+            { s: "爱", t: "愛", p: "ài", e: "Love", th: "รัก" }, { s: "喜欢", t: "喜歡", p: "xǐhuan", e: "Like", th: "ชอบ" }, { s: "有", t: "", p: "yǒu", e: "Have", th: "มี" }, { s: "没有", t: "沒有", p: "méiyǒu", e: "Don't have", th: "ไม่มี" },
+            { s: "要", t: "", p: "yào", e: "Want", th: "เอา/ต้องการ" }, { s: "会", t: "會", p: "huì", e: "Can/Will", th: "เป็น/สามารถ/จะ" }, { s: "想", t: "", p: "xiǎng", e: "Think/Want", th: "คิด/อยาก" }, { s: "是", t: "", p: "shì", e: "Is/Am/Are", th: "เป็น/คือ/ใช่" },
             // Colors/Adj
-            { z: "颜色", p: "yánsè", e: "Color", t: "สี" }, { z: "红色", p: "hóngsè", e: "Red", t: "สีแดง" }, { z: "黄色", p: "huángsè", e: "Yellow", t: "สีเหลือง" }, { z: "蓝色", p: "lánsè", e: "Blue", t: "สีฟ้า/น้ำเงิน" },
-            { z: "绿色", p: "lǜsè", e: "Green", t: "สีเขียว" }, { z: "黑色", p: "hēisè", e: "Black", t: "สีดำ" }, { z: "白色", p: "báisè", e: "White", t: "สีขาว" }, { z: "大", p: "dà", e: "Big", t: "ใหญ่" },
-            { z: "小", p: "xiǎo", e: "Small", t: "เล็ก" }, { z: "长", p: "cháng", e: "Long", t: "ยาว" }, { z: "短", p: "duǎn", e: "Short", t: "สั้น" }, { z: "高", p: "gāo", e: "High/Tall", t: "สูง" },
-            { z: "好", p: "hǎo", e: "Good", t: "ดี" }, { z: "漂亮", p: "piàoliang", e: "Pretty", t: "สวย" }, { z: "高兴", p: "gāoxìng", e: "Happy", t: "ดีใจ/มีความสุข" },
+            { s: "颜色", t: "", p: "yánsè", e: "Color", th: "สี" }, { s: "红色", t: "", p: "hóngsè", e: "Red", th: "สีแดง" }, { s: "黄色", t: "", p: "huángsè", e: "Yellow", th: "สีเหลือง" }, { s: "蓝色", t: "", p: "lánsè", e: "Blue", th: "สีฟ้า/น้ำเงิน" },
+            { s: "绿色", t: "", p: "lǜsè", e: "Green", th: "สีเขียว" }, { s: "黑色", t: "", p: "hēisè", e: "Black", th: "สีดำ" }, { s: "白色", t: "", p: "báisè", e: "White", th: "สีขาว" }, { s: "大", t: "", p: "dà", e: "Big", th: "ใหญ่" },
+            { s: "小", t: "", p: "xiǎo", e: "Small", th: "เล็ก" }, { s: "长", t: "", p: "cháng", e: "Long", th: "ยาว" }, { s: "短", t: "", p: "duǎn", e: "Short", th: "สั้น" }, { s: "高", t: "", p: "gāo", e: "High/Tall", th: "สูง" },
+            { s: "好", t: "", p: "hǎo", e: "Good", th: "ดี" }, { s: "漂亮", t: "", p: "piàoliang", e: "Pretty", th: "สวย" }, { s: "高兴", t: "", p: "gāoxìng", e: "Happy", th: "ดีใจ/มีความสุข" },
             // Time/Place
-            { z: "现在", p: "xiànzài", e: "Now", t: "ตอนนี้" }, { z: "今天", p: "jīntiān", e: "Today", t: "วันนี้" }, { z: "明天", p: "míngtiān", e: "Tomorrow", t: "พรุ่งนี้" }, { z: "昨天", p: "zuótiān", e: "Yesterday", t: "เมื่อวาน" },
-            { z: "年", p: "nián", e: "Year", t: "ปี" }, { z: "月", p: "yuè", e: "Month", t: "เดือน" }, { z: "日", p: "rì", e: "Day/Date", t: "วัน" }, { z: "星期", p: "xīngqī", e: "Week", t: "สัปดาห์" },
-            { z: "点", p: "diǎn", e: "O'clock", t: "โมง/นาฬิกา" }, { z: "家", p: "jiā", e: "Home", t: "บ้าน/ครอบครัว" }, { z: "北京", p: "Běijīng", e: "Beijing", t: "ปักกิ่ง" }, { z: "中国", p: "Zhōngguó", e: "China", t: "ประเทศจีน" },
-            { z: "上", p: "shàng", e: "Up/Above", t: "บน/ขึ้น" }, { z: "下", p: "xià", e: "Down/Below", t: "ล่าง/ลง/ใต้" }, { z: "里", p: "lǐ", e: "Inside", t: "ใน" },
+            { s: "现在", t: "", p: "xiànzài", e: "Now", th: "ตอนนี้" }, { s: "今天", t: "", p: "jīntiān", e: "Today", th: "วันนี้" }, { s: "明天", t: "", p: "míngtiān", e: "Tomorrow", th: "พรุ่งนี้" }, { s: "昨天", t: "", p: "zuótiān", e: "Yesterday", th: "เมื่อวาน" },
+            { s: "年", t: "", p: "nián", e: "Year", th: "ปี" }, { s: "月", t: "", p: "yuè", e: "Month", th: "เดือน" }, { s: "日", t: "", p: "rì", e: "Day/Date", th: "วัน" }, { s: "星期", t: "", p: "xīngqī", e: "Week", th: "สัปดาห์" },
+            { s: "点", t: "", p: "diǎn", e: "O'clock", th: "โมง/นาฬิกา" }, { s: "家", t: "", p: "jiā", e: "Home", th: "บ้าน/ครอบครัว" }, { s: "北京", t: "", p: "Běijīng", e: "Beijing", th: "ปักกิ่ง" }, { s: "中国", t: "", p: "Zhōngguó", e: "China", th: "ประเทศจีน" },
+            { s: "上", t: "", p: "shàng", e: "Up/Above", th: "บน/ขึ้น" }, { s: "下", t: "", p: "xià", e: "Down/Below", th: "ล่าง/ลง/ใต้" }, { s: "里", t: "", p: "lǐ", e: "Inside", th: "ใน" },
             // Greetings
-            { z: "你好", p: "nǐhǎo", e: "Hello", t: "สวัสดี" }, { z: "再见", p: "zàijiàn", e: "Goodbye", t: "ลาก่อน" }, { z: "谢谢", p: "xièxie", e: "Thank you", t: "ขอบคุณ" }, { z: "不客气", p: "búkèqi", e: "Welcome", t: "ไม่เป็นไร (ตอบรับคำขอบคุณ)" },
-            { z: "对不起", p: "duìbuqǐ", e: "Sorry", t: "ขอโทษ" }, { z: "没关系", p: "méiguānxi", e: "No problem", t: "ไม่เป็นไร (ตอบรับคำขอโทษ)" }, { z: "很", p: "hěn", e: "Very", t: "มาก" }, { z: "太...了", p: "tài...le", e: "Too...", t: "...เกินไป" },
-            { z: "和", p: "hé", e: "And", t: "และ/กับ" }, { z: "吗", p: "ma", e: "(Question marker)", t: "ไหม (คำถาม)" }
+            { s: "你好", t: "", p: "nǐhǎo", e: "Hello", th: "สวัสดี" }, { s: "再见", t: "再見", p: "zàijiàn", e: "Goodbye", th: "ลาก่อน" }, { s: "谢谢", t: "謝謝", p: "xièxie", e: "Thank you", th: "ขอบคุณ" }, { s: "不客气", t: "", p: "búkèqi", e: "Welcome", th: "ไม่เป็นไร (ตอบรับคำขอบคุณ)" },
+            { s: "对不起", t: "對不起", p: "duìbuqǐ", e: "Sorry", th: "ขอโทษ" }, { s: "没关系", t: "", p: "méiguānxi", e: "No problem", th: "ไม่เป็นไร (ตอบรับคำขอโทษ)" }, { s: "很", t: "", p: "hěn", e: "Very", th: "มาก" }, { s: "太...了", t: "", p: "tài...le", e: "Too...", th: "...เกินไป" },
+            { s: "和", t: "", p: "hé", e: "And", th: "และ/กับ" }, { s: "吗", t: "", p: "ma", e: "(Question marker)", th: "ไหม (คำถาม)" }
         ];
 
         // --- Colors ---
@@ -179,8 +180,8 @@
                                     key={lang.id}
                                     onClick={() => setMainLang(lang.id)}
                                     className={`px-4 py-2 rounded-full font-bold transition-all ${mainLang === lang.id
-                                            ? `${lang.color} text-white shadow-md scale-105`
-                                            : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                        ? `${lang.color} text-white shadow-md scale-105`
+                                        : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                                         }`}
                                 >
                                     {lang.label}
@@ -245,14 +246,14 @@
                                 className="absolute w-full max-w-sm aspect-[4/5] bg-white rounded-3xl shadow-xl flex flex-col items-center justify-center p-8 border-4 border-white user-select-none touch-pan-y"
                             >
                                 <div className="text-center">
-                                    <span className="text-sm text-gray-400 uppercase tracking-widest mb-4 block">
+                                    <span className="text-sm text-gray-200 uppercase tracking-widest mb-4 block">
                                         {LANGUAGES.find(l => l.id === mainLang).label}
                                     </span>
                                     <h1 className={`text-6xl md:text-8xl font-bold text-gray-800 break-words leading-tight ${mainLang === 'th' ? 'font-thai' : mainLang === 'cn' ? 'font-cn' : ''
                                         }`}>
                                         {mainLang === 'en' ? currentItem.e :
-                                            mainLang === 'th' ? currentItem.t :
-                                                currentItem.z}
+                                            mainLang === 'th' ? currentItem.th :
+                                                (currentItem.t ? <span>{currentItem.s}<span className="text-4xl text-gray-400 block mt-2 font-normal">({currentItem.t})</span></span> : currentItem.s)}
                                     </h1>
                                 </div>
 
@@ -334,7 +335,9 @@
                                             {lang.label}
                                         </span>
                                         <p className={`text-2xl font-bold text-gray-800 ${lang.id === 'cn' ? 'font-cn' : lang.id === 'th' ? 'font-thai' : ''}`}>
-                                            {lang.id === 'en' ? item.e : lang.id === 'th' ? item.t : item.z}
+                                            {lang.id === 'en' ? item.e :
+                                                lang.id === 'th' ? item.th :
+                                                    (item.t ? `${item.s} (${item.t})` : item.s)}
                                         </p>
                                     </div>
                                 ))}
